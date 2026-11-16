@@ -545,6 +545,19 @@ def export_project(assembly_path: str, output_directory: str, language: str = "c
             timeout=300
         )
         files = os.listdir(out_dir) if os.path.exists(out_dir) else []
+
+        # Fix solution.sln project type GUID for modern Visual Studio SDK-style loading
+        sln_path = os.path.join(out_dir, "solution.sln")
+        if sdk_project and os.path.isfile(sln_path):
+            try:
+                with open(sln_path, "r", encoding="utf-8") as f:
+                    sln_content = f.read()
+                sln_content = sln_content.replace("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}", "{9A19103F-16F7-4668-BE54-9A1E7A4F7556}")
+                with open(sln_path, "w", encoding="utf-8") as f:
+                    f.write(sln_content)
+            except Exception:
+                pass
+
         return f"Decompilation complete. Generated {len(files)} top-level items in '{out_dir}'.\nStdout: {proc.stdout.strip()}"
     except Exception as e:
         return f"Error exporting project: {e}"
