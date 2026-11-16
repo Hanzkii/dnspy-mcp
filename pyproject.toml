@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dnspy-mcp"
-version = "0.1.0"
-description = "Model Context Protocol (MCP) server for .NET assembly decompilation and reverse engineering using dnSpy and dnfile."
+version = "0.2.0"
+description = "High-performance Model Context Protocol (MCP) server for .NET decompilation, method lookup, string extraction, and diffing with dnSpy & dnfile."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
