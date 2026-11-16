@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dnspy-mcp"
+version = "0.1.0"
+description = "Model Context Protocol (MCP) server for .NET assembly decompilation and reverse engineering using dnSpy and dnfile."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Hanzkii" }
+]
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "dnspy",
+    "dotnet",
+    "reverse-engineering",
+    "decompiler",
+    "csharp",
+    "il",
+    "assembly"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Disassemblers",
+    "Topic :: Software Development :: Debuggers"
+]
+dependencies = [
+    "mcp>=1.2.0",
+    "dnfile>=0.18.0",
+    "pefile>=2024.8.26"
+]
+
+[project.scripts]
+dnspy-mcp = "dnspy_mcp.server:main"
+
+[project.urls]
+Homepage = "https://github.com/Hanzkii/dnspy-mcp"
+Repository = "https://github.com/Hanzkii/dnspy-mcp.git"
+Issues = "https://github.com/Hanzkii/dnspy-mcp/issues"
