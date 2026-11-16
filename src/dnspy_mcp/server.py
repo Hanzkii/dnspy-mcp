@@ -501,14 +501,17 @@ def diff_assemblies(baseline_assembly_path: str, target_assembly_path: str) -> s
         return f"Error diffing assemblies: {e}"
 
 @app.tool()
-def export_project(assembly_path: str, output_directory: str, language: str = "csharp") -> str:
+def export_project(assembly_path: str, output_directory: str, language: str = "csharp", sdk_project: bool = True, vs_version: int = 2017) -> str:
     """
     Decompile an entire .NET assembly into a fully structured C# or VB solution (.sln and .csproj).
+    Configured by default to generate modern SDK-style projects compatible with modern Visual Studio.
 
     Args:
         assembly_path: Path to the .NET assembly file (.dll or .exe).
         output_directory: Directory path where the generated Visual Studio solution will be written.
         language: Target decompilation language ('csharp' or 'vb').
+        sdk_project: Generate modern SDK-style csproj files (default: True).
+        vs_version: Visual Studio solution version (default: 2017 for max compatibility with VS 2019/2022).
     """
     asm_path = _resolve_path(assembly_path)
     out_dir = _resolve_path(output_directory)
@@ -526,8 +529,11 @@ def export_project(assembly_path: str, output_directory: str, language: str = "c
         console_bin,
         "-o", out_dir,
         "-l", lang_arg,
-        asm_path
+        "--vs", str(vs_version)
     ]
+    if sdk_project:
+        cmd.append("--sdk-project")
+    cmd.append(asm_path)
 
     try:
         proc = subprocess.run(

@@ -72,11 +72,13 @@ Differential assembly analyzer for patch tracking. Compares two versions of an a
   - `target_assembly_path`: Path to the newer target binary.
 
 ### 7. `export_project`
-Decompiles an entire .NET assembly into a fully structured Visual Studio solution (`.sln` and `.csproj` project files).
+Decompiles an entire .NET assembly into a fully structured Visual Studio solution (`.sln` and `.csproj` project files). Automatically defaults to modern SDK-style projects for immediate compatibility with Visual Studio 2019/2022.
 - **Arguments**:
-  - `assembly_path`: Path to the assembly.
+  - `assembly_path`: Path to the assembly (`.dll` or `.exe`).
   - `output_directory`: Directory path where the generated project will be written.
-  - `language`: Target language (`csharp` or `vb`).
+  - `language` *(optional)*: Target language (`csharp` or `vb`). Default: `csharp`.
+  - `sdk_project` *(optional)*: Generate modern SDK-style `.csproj` format (`<Project Sdk="Microsoft.NET.Sdk">`). Default: `true`.
+  - `vs_version` *(optional)*: Visual Studio solution version (e.g. `2017`). Default: `2017`.
 
 ### 8. `list_assembly_types`
 Fast static metadata scan of all declared namespaces, classes, interfaces, and tokens without loading the assembly into the CLR runtime.
@@ -163,6 +165,31 @@ $env:DNSPY_PATH = "C:\Tools\dnSpy"
   }
 }
 ```
+
+---
+
+## Troubleshooting & FAQ
+
+### Visual Studio Prompt: "Review Project And Solution Changes"
+When opening a decompiled `.sln` in modern Visual Studio (VS 2019 / VS 2022), you may encounter a prompt stating:  
+*"These projects are either not supported or need project behavior impacting modifications..."*
+
+**Root Causes & Solutions:**
+1. **Target Framework Version**: Unity and older .NET assemblies target legacy `.NET Framework 4.0` (`<TargetFramework>net40</TargetFramework>`), which is not bundled by default with VS 2022.
+   - **Fix 1**: Click **OK** in the Visual Studio dialog. Visual Studio will load the project or suggest retargeting without modifying any code.
+   - **Fix 2 (Recommended)**: Open the generated `.csproj` file in any text editor and change:
+     ```xml
+     <TargetFramework>net40</TargetFramework>
+     ```
+     to modern .NET or .NET Standard:
+     ```xml
+     <TargetFramework>netstandard2.1</TargetFramework>
+     ```
+     or
+     ```xml
+     <TargetFramework>net8.0</TargetFramework>
+     ```
+2. **SDK Style Formatting**: Always ensure `export_project` runs with `sdk_project=True` (the default in v0.2.0+) and `vs_version=2017` to ensure modern Solution Format 12.00 is generated.
 
 ---
 
