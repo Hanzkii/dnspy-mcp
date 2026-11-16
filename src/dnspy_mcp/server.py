@@ -501,16 +501,16 @@ def diff_assemblies(baseline_assembly_path: str, target_assembly_path: str) -> s
         return f"Error diffing assemblies: {e}"
 
 @app.tool()
-def export_project(assembly_path: str, output_directory: str, language: str = "csharp", sdk_project: bool = True, vs_version: int = 2017) -> str:
+def export_project(assembly_path: str, output_directory: str, language: str = "csharp", sdk_project: bool = False, vs_version: int = 2017) -> str:
     """
     Decompile an entire .NET assembly into a fully structured C# or VB solution (.sln and .csproj).
-    Configured by default to generate modern SDK-style projects compatible with modern Visual Studio.
+    Automatically optimizes project and solution formats for out-of-the-box loading in Visual Studio 2017/2019/2022.
 
     Args:
         assembly_path: Path to the .NET assembly file (.dll or .exe).
         output_directory: Directory path where the generated Visual Studio solution will be written.
         language: Target decompilation language ('csharp' or 'vb').
-        sdk_project: Generate modern SDK-style csproj files (default: True).
+        sdk_project: Generate SDK-style csproj files (default: False for maximum MSBuild compatibility).
         vs_version: Visual Studio solution version (default: 2017 for max compatibility with VS 2019/2022).
     """
     asm_path = _resolve_path(assembly_path)
@@ -546,17 +546,29 @@ def export_project(assembly_path: str, output_directory: str, language: str = "c
         )
         files = os.listdir(out_dir) if os.path.exists(out_dir) else []
 
-        # Fix solution.sln project type GUID for modern Visual Studio SDK-style loading
-        sln_path = os.path.join(out_dir, "solution.sln")
-        if sdk_project and os.path.isfile(sln_path):
-            try:
-                with open(sln_path, "r", encoding="utf-8") as f:
-                    sln_content = f.read()
-                sln_content = sln_content.replace("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}", "{9A19103F-16F7-4668-BE54-9A1E7A4F7556}")
-                with open(sln_path, "w", encoding="utf-8") as f:
-                    f.write(sln_content)
-            except Exception:
-                pass
+        # Post-process generated files for out-of-the-box Visual Studio compatibility
+        for root, _, filenames in os.walk(out_dir):
+            for fn in filenames:
+                fpath = os.path.join(root, fn)
+                if fn.endswith(".csproj") and not sdk_project:
+                    try:
+                        with open(fpath, "r", encoding="utf-8") as f:
+                            c = f.read()
+                        if "<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>" in c:
+                            c = c.replace("<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>", "<TargetFrameworkVersion>v4.8</TargetFrameworkVersion>")
+                            with open(fpath, "w", encoding="utf-8") as f:
+                                f.write(c)
+                    except Exception:
+                        pass
+                elif fn.endswith(".sln") and sdk_project:
+                    try:
+                        with open(fpath, "r", encoding="utf-8") as f:
+                            c = f.read()
+                        c = c.replace("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}", "{9A19103F-16F7-4668-BE54-9A1E7A4F7556}")
+                        with open(fpath, "w", encoding="utf-8") as f:
+                            f.write(c)
+                    except Exception:
+                        pass
 
         return f"Decompilation complete. Generated {len(files)} top-level items in '{out_dir}'.\nStdout: {proc.stdout.strip()}"
     except Exception as e:
